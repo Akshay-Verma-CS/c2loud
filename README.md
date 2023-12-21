@@ -1,5 +1,6 @@
 # c2loud
-The goal is to make a common library to use any cloud service
+The goal is to make a common library to use any cloud service.
+This repo is a work in progress but you can use it for AWS and some of it's common services
 
 
 sameple use file

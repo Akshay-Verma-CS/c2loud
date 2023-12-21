@@ -1,37 +1,48 @@
-// Package cloud defines interfaces and structures for interacting with various cloud providers.
 package cloud
 
-// CloudProvider is an interface that all cloud provider implementations must satisfy.
-// It defines common methods that are agnostic of the specific provider.
-type CloudProvider interface {
-    // CreateResource creates a new resource in the cloud.
-    CreateResource(name string, options ResourceOptions) (Resource, error)
+import (
+    // Import provider-specific packages
+    "github.com/Akshay-Verma-CS/c2loud/cloud/aws"
+    // "github.com/path/to/azure"
+    // "github.com/path/to/gcp"
+)
 
-    // DeleteResource deletes a resource from the cloud.
-    DeleteResource(id string) error
+type ProviderType string
 
-    // ListResources lists all resources managed by the cloud provider.
-    ListResources() ([]Resource, error)
+const (
+    AWSProvider   ProviderType = "AWS"
+    AzureProvider ProviderType = "Azure"
+    GCPProvider   ProviderType = "GCP"
+    // Add other providers as needed
+)
 
-    // GetResource fetches details of a specific resource.
-    GetResource(id string) (Resource, error)
+type CloudProvider struct {
+    // Define fields common across all providers
 }
 
-// Resource represents a general cloud resource.
-type Resource struct {
-    ID      string
-    Name    string
-    Type    string
-    Status  string
-    Details map[string]interface{} // Additional details specific to the resource type
+// NewCloudProvider creates and returns an instance of the specified cloud provider.
+func NewCloudProvider(providerType ProviderType, config interface{}) (*CloudProvider, error) {
+    switch providerType {
+    case AWSProvider:
+        // Initialize AWS provider
+        awsProvider, err := aws.NewAWSProvider(config.(*aws.AWSConfig))
+        if err != nil {
+            return nil, err
+        }
+        return &CloudProvider{/* initialize with awsProvider */}, nil
+
+    case AzureProvider:
+        // Initialize Azure provider
+        // ...
+
+    case GCPProvider:
+        // Initialize GCP provider
+        // ...
+
+    // Add cases for other providers
+
+    default:
+        return nil, fmt.Errorf("unsupported provider type: %s", providerType)
+    }
 }
 
-// ResourceOptions represents options for creating a cloud resource.
-type ResourceOptions struct {
-    Type    string
-    Config  map[string]interface{} // Configuration specific to the resource type
-}
-
-// NewProviderFunc is a function type that creates a new instance of a CloudProvider.
-// Each cloud provider package should implement this function.
-type NewProviderFunc func(config map[string]interface{}) (CloudProvider, error)
