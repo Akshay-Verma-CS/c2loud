@@ -28,9 +28,37 @@ type AWSProvider struct {
     AppConfigService *appconfig.AppConfigService
 }
 
-// NewAWSProvider creates a new AWSProvider with all the necessary service clients.
-func NewAWSProvider() (*AWSProvider, error) {
-    sess, err := session.NewSession() // Add options as needed
+// AWSConfig defines the configuration for AWSProvider.
+type AWSConfig struct {
+    UseIAMRole     bool
+    AccessKey      string
+    SecretKey      string
+    IAMRoleARN     string
+    SessionName    string
+    Region         string
+}
+
+func NewAWSProvider(config *AWSConfig) (*AWSProvider, error) {
+    var sess *session.Session
+    var err error
+
+    if config.UseIAMRole {
+        // Assume an IAM role if specified
+        sess, err = session.NewSession(&aws.Config{Region: aws.String(config.Region)})
+        if err == nil {
+            creds := stscreds.NewCredentials(sess, config.IAMRoleARN, func(p *stscreds.AssumeRoleProvider) {
+                p.RoleSessionName = config.SessionName
+            })
+            sess.Config.Credentials = creds
+        }
+    } else {
+        // Use access keys if provided
+        sess, err = session.NewSession(&aws.Config{
+            Region:      aws.String(config.Region),
+            Credentials: credentials.NewStaticCredentials(config.AccessKey, config.SecretKey, ""),
+        })
+    }
+
     if err != nil {
         return nil, err
     }
